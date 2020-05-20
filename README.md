@@ -1,0 +1,2 @@
+# ZalZal
+2020 MAKEUS CHALLENGE SPRING 해커톤 - ZalZal 서버
