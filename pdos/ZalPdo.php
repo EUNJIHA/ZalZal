@@ -129,8 +129,8 @@ function getLikes($userId, $category)
 {
 
     $pdo = pdoSqlConnect();
-    $query = "select CATEGORY.name, id videoId,
-       url, title, publisher,
+    $query = "select IF(CATEGORY.name is null, '',CATEGORY.name) name, id videoId,
+       url, title, publisher, content,
        IF(h.status is null, 'N', status) heart
        from video
 LEFT JOIN heart h on video.id = h.video_id and user_id = ?
@@ -148,7 +148,12 @@ where status = 'Y'";
     $st->execute([$userId]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
+    foreach ($res as $key => $value) {
 
+        $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+        $res[$key]['thumbnail'] = "http://img.youtube.com/vi/" . $res[$key]['url'] . "/0.jpg";
+
+    }
     $st = null;
     $pdo = null;
 
@@ -321,6 +326,7 @@ function getSubCategory()
 function getPreference($userId, $keyword, $kindArray)
 {
 
+    // 내 취향 insert 하고 + select 해오는 함수
     $pdo = pdoSqlConnect();
 
     # keywords = ('빵', '양식')
@@ -329,24 +335,36 @@ function getPreference($userId, $keyword, $kindArray)
         $pdo->beginTransaction();
 
 //        print_r($kindArray);
+//echo $userId;
+        // 1) Delete하고 insert 하기
+        $deleteQuery = "DELETE FROM user_category
+WHERE user_id = ?;";
+        $st = $pdo->prepare($deleteQuery);
+        $st->execute([$userId]);
+
+//        echo $deleteQuery;
 
 //        echo gettype($kindArray);
-        foreach ($kindArray as $value) {
+        foreach ($kindArray as $key => $value) {
             $wordQuery = "select id from sub_category
-where name = ?;";
+where name = '". $value. "';";
+//            echo $wordQuery;
 //            echo $value;
             $st = $pdo->prepare($wordQuery);
-            $st->execute([$value]);
+            $st->execute();
             $st->setFetchMode(PDO::FETCH_ASSOC);
             $videoId = $st->fetch();
+
 //            print_r($videoId);
 //             echo $videoId['id'];
 //            $videoId['id'];
 
+
             $insertQuery = "insert into user_category (user_id, sub_category_id) VALUES (?, ?);";
             $st = $pdo->prepare($insertQuery);
-            $st->execute([$userId,  $videoId['id']]);
+            $st->execute([$userId, $videoId['id']]);
 
+//            echo $videoId['id'];
         }
 
         $query = "select id videoId,
@@ -355,11 +373,14 @@ where name = ?;";
        from video
 LEFT JOIN heart h on video.id = h.video_id and user_id = ? ";
 
-        if ($keyword != '') {
+        if ($keyword == '') {
+
+        } else {
             $query = $query . "JOIN (select video_id videoId from keyword
 where word in " . $keyword . ") WORD ON WORD.videoId = video.id";
+//            print($keyword) ;
         }
-//    echo $query;
+
 
         $st = $pdo->prepare($query);
         $st->execute([$userId]);
@@ -409,6 +430,7 @@ function isValidUser($email, $pw)
     return intval($res[0]["exist"]);
 
 }
+
 function getCategoryName($categoryId)
 {
 

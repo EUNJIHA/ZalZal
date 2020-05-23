@@ -271,8 +271,9 @@ try {
                 $temp = str_replace(" ", "", $keyword);
                 $kindArray = explode(',', $temp);
 
-                // $kindValue = array('쿠키', '빵', '커피');
+//                 $kindValue = array('쿠키', '빵', '커피');
                 $kindValue = getSubCategory();
+//                print_r($kindValue);
 
                 $keywordArray = implode(', ', $kindValue);
 
@@ -308,7 +309,7 @@ try {
             if ($real['videos'] == null) {
                 $res->isSuccess = FALSE;
                 $res->code = 400;
-                $res->message = "취향을 등록하면 영상을 추천해드려요!";
+                $res->message = "관련 영상이 없습니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 return;
             }
