@@ -260,6 +260,7 @@ try {
 
 
             $keyword = $_GET['keyword'];
+            $originalKeyword = $keyword;
             if (!isset($keyword)) {
 
                 $keyword = '';
@@ -301,7 +302,7 @@ try {
             }
 
 
-            $real['videos'] = getPreference($userId, $keyword);
+            $real['videos'] = getPreference($userId, $keyword, $kindArray);
 
 
             if ($real['videos'] == null) {
@@ -421,6 +422,9 @@ try {
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 return;
             }
+
+        case "getCategories":
+
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

@@ -96,6 +96,7 @@ where pick_id=?;
     foreach ($res as $key => $value) {
 
         $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+        $res[$key]['thumbnail'] = "http://img.youtube.com/vi/" . $res[$key]['url'] . "/0.jpg";
 
     }
     // $temp3['keywords'] = getVideoKeywords($temp2['videos']['videoId']);
@@ -317,33 +318,72 @@ function getSubCategory()
 
 }
 
-function getPreference($userId, $keyword)
+function getPreference($userId, $keyword, $kindArray)
 {
 
     $pdo = pdoSqlConnect();
-    $query = "select id videoId,
+
+    # keywords = ('빵', '양식')
+    try {
+
+        $pdo->beginTransaction();
+
+//        print_r($kindArray);
+
+//        echo gettype($kindArray);
+        foreach ($kindArray as $value) {
+            $wordQuery = "select id from sub_category
+where name = ?;";
+//            echo $value;
+            $st = $pdo->prepare($wordQuery);
+            $st->execute([$value]);
+            $st->setFetchMode(PDO::FETCH_ASSOC);
+            $videoId = $st->fetch();
+//            print_r($videoId);
+//             echo $videoId['id'];
+//            $videoId['id'];
+
+            $insertQuery = "insert into user_category (user_id, sub_category_id) VALUES (?, ?);";
+            $st = $pdo->prepare($insertQuery);
+            $st->execute([$userId,  $videoId['id']]);
+
+        }
+
+        $query = "select id videoId,
        url, title, publisher, content,
        IF(h.status is null, 'N', status) heart
        from video
 LEFT JOIN heart h on video.id = h.video_id and user_id = ? ";
 
-    if($keyword != ''){
-        $query = $query. "JOIN (select video_id videoId from keyword
-where word in ". $keyword . ") WORD ON WORD.videoId = video.id";
-    }
+        if ($keyword != '') {
+            $query = $query . "JOIN (select video_id videoId from keyword
+where word in " . $keyword . ") WORD ON WORD.videoId = video.id";
+        }
 //    echo $query;
 
-    $st = $pdo->prepare($query);
-    $st->execute([$userId]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
+        $st = $pdo->prepare($query);
+        $st->execute([$userId]);
+        $st->setFetchMode(PDO::FETCH_ASSOC);
+        $res = $st->fetchAll();
 
 
-    foreach ($res as $key => $value) {
+        foreach ($res as $key => $value) {
 
-        $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+            $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+            $res[$key]['thumbnail'] = "http://img.youtube.com/vi/" . $res[$key]['url'] . "/0.jpg";
+        }
 
+
+        $pdo->commit();
+
+    } catch (\Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollback();
+            return null;
+        }
+        throw $e;
     }
+
 
     $st = null;
     $pdo = null;
