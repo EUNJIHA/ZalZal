@@ -325,11 +325,12 @@ function getPreference($userId, $keyword)
        url, title, publisher, content,
        IF(h.status is null, 'N', status) heart
        from video
-LEFT JOIN heart h on video.id = h.video_id and user_id = ?
-JOIN (select video_id videoId from keyword
-where word in ";
+LEFT JOIN heart h on video.id = h.video_id and user_id = ? ";
 
-    $query = $query . $keyword . ") WORD ON WORD.videoId = video.id";
+    if($keyword != ''){
+        $query = $query. "JOIN (select video_id videoId from keyword
+where word in ". $keyword . ") WORD ON WORD.videoId = video.id";
+    }
 //    echo $query;
 
     $st = $pdo->prepare($query);
