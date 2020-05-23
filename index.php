@@ -2,6 +2,7 @@
 require './pdos/DatabasePdo.php';
 require './pdos/IndexPdo.php';
 require './vendor/autoload.php';
+require './pdos/ZalPdo.php';
 
 use \Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler;
@@ -21,14 +22,29 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('POST', '/test', ['IndexController', 'testPost']);
     $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
     $r->addRoute('POST', '/jwt', ['MainController', 'createJwt']);
-    
 
+    // 1. 로그인
+    $r->addRoute('POST', '/user', ['ZalController', 'postUser']);
 
-//    $r->addRoute('GET', '/users', 'get_all_users_handler');
-//    // {id} must be a number (\d+)
-//    $r->addRoute('GET', '/user/{id:\d+}', 'get_user_handler');
-//    // The /{title} suffix is optional
-//    $r->addRoute('GET', '/articles/{id:\d+}[/{title}]', 'get_article_handler');
+    // 2. HOME
+    $r->addRoute('GET', '/picks', ['ZalController', 'getPicks']);
+    $r->addRoute('GET', '/picks/{pick-id}', ['ZalController', 'getPick']);
+
+    // 3. LIKE
+    $r->addRoute('GET', '/likes', ['ZalController', 'getLikes']);
+
+    // 4. PICK
+    $r->addRoute('GET', '/preference', ['ZalController', 'getPreference']);
+
+    // 5. VIDEO
+    $r->addRoute('GET', '/videos/{video-id}', ['ZalController', 'getVideo']);
+    $r->addRoute('POST', '/videos/{video-id}/like', ['ZalController', 'postVideoLike']);
+
+    // 6. ME
+    $r->addRoute('GET', '/categories', ['ZalController', 'getCategories']);
+    $r->addRoute('GET', '/categories/{category-id}', ['ZalController', 'getSubCategories']);
+    $r->addRoute('GET', '/keywords', ['ZalController', 'getKeywords']);
+
 });
 
 // Fetch method and URI from somewhere
@@ -80,11 +96,11 @@ switch ($routeInfo[0]) {
                 $vars = $routeInfo[2];
                 require './controllers/MainController.php';
                 break;
-            /*case 'EventController':
+            case 'ZalController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
-                require './controllers/EventController.php';
+                require './controllers/ZalController.php';
                 break;
-            case 'ProductController':
+            /*case 'ProductController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
                 require './controllers/ProductController.php';
                 break;
