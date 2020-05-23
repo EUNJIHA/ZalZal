@@ -283,6 +283,54 @@ try {
 
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        case "postVideoLike":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "로그인을 해야 이용 가능한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $userEmail = $data->email;
+
+            $userId = getUserId($userEmail);
+
+            $videoId = $vars['video-id'];
+
+
+            // 있는지 먼저 검사하고 없으면 insert, 있으면 update
+
+
+            $status = '';
+            if (!isExistLike($userId, $videoId)) {
+                $status = 'insert';
+                postHeart($userId, $videoId, $status);
+
+                $res->result = userHeartStatus($userId, $videoId);
+                $res->isSuccess = TRUE;
+                $res->code = 200;
+                $res->message = "Video 좋아요 - 처음 누름";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            } else {
+                $status = 'update';
+                postHeart($userId, $videoId, $status);
+
+                $res->result = userHeartStatus($userId, $videoId);
+                $res->isSuccess = TRUE;
+                $res->code = 200;
+                $res->message = "Video 좋아요(추가/삭제)";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

@@ -210,6 +210,66 @@ where id = ?;";
     return $res[0];
 }
 
+
+function isExistLike($userId, $videoId){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM heart h WHERE h.user_id=? and h.video_id=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$userId, $videoId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
+
+function postHeart($userId, $videoId, $status){
+    $pdo = pdoSqlConnect();
+    $insertQuery = "INSERT INTO heart (user_id, video_id, status) VALUES (?, ?, 'Y');";
+    $updateQuery = "UPDATE heart SET status = IF(status = 'Y', 'N', 'Y')  WHERE user_id =? and video_id =?;";
+
+    $query = "";
+
+    if($status == 'insert'){
+        $query = $insertQuery;
+    }elseif($status == 'update'){
+        $query = $updateQuery;
+    }
+
+    $st = $pdo->prepare($query);
+//    echo $query;
+//    echo $userId . $videoId;
+    $st->execute([$userId, $videoId]);
+
+    $st = null;
+    $pdo = null;
+
+}
+
+
+function userHeartStatus($userId, $videoId){
+
+    $pdo = pdoSqlConnect();
+    $query = "select IF(status = 'N', 'N', 'Y') status
+from heart
+where user_id =? and video_id = ?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userId, $videoId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
+
+}
 ////READ
 //function testDetail($testNo)
 //{
