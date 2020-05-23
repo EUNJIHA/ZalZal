@@ -14,15 +14,15 @@
 ![image](https://user-images.githubusercontent.com/43839938/82728587-32863700-9d2c-11ea-8e08-6fe9b91b9fb9.png)
 
 ## 3. ERD
-[![image](https://user-images.githubusercontent.com/43839938/82728759-6d3c9f00-9d2d-11ea-8548-302b52d39397.png)](https://aquerytool.com:443/aquerymain/index/?rurl=cae54d19-c9b4-4a8f-a84e-b90ccf0ae082&)
+![image](https://user-images.githubusercontent.com/43839938/82728759-6d3c9f00-9d2d-11ea-8548-302b52d39397.png)
 
+[ERD 상세보기](https://aquerytool.com:443/aquerymain/index/?rurl=ecdf5a15-8e4e-4cd9-9084-ce61e7fa2bfe&)
 
 
 <details>
 <summary>ERD 비밀번호</summary>
 <div markdown="1">
-
-Password: h087px
+Password : 1it8ne
 
 </div>
 </details>
@@ -35,4 +35,5 @@ Password: h087px
 [API Documentation 상세 보기](https://documenter.getpostman.com/view/5699730/Szt8dUtf)
 
 ## 5. Technologies
-AWS EC2, Nginx, PHP, MySQL
+AWS EC2, Nginx, PHP, MySQL  
+Tool: WinSCP, DataGrip, PhpStorm
