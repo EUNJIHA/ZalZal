@@ -131,11 +131,13 @@ try {
 
             $temp = Array();
             $temp2 = Array();
+            $temp3 = Array();
 
             $temp = getSubImgUrl($pickId);
             $temp2['videos'] = getVideos($userId, $pickId);
 
-            $real = array_merge($temp, $temp2);
+
+            $real = array_merge($temp, $temp2, $temp3);
 
             $res->result = $real;
             $res->isSuccess = TRUE;
@@ -232,6 +234,94 @@ try {
 
 
         case "getPreference":
+
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+            if (isset($jwt)) {
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                    return;
+                }
+
+                $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+                $userEmail = $data->email;
+                $userId = getUserId($userEmail);
+            } else {
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "취향을 등록하면 영상을 추천해드려요!";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
+
+
+            $keyword = $_GET['keyword'];
+            if (!isset($keyword)) {
+
+                $keyword = '';
+            } else {
+
+                $realKind = "(";
+
+                $temp = str_replace(" ", "", $keyword);
+                $kindArray = explode(',', $temp);
+
+                // $kindValue = array('쿠키', '빵', '커피');
+                $kindValue = getSubCategory();
+
+                $keywordArray = implode( ', ', $kindValue );
+
+                foreach ($kindArray as $key => $value) {
+
+                    $validPrice = $kindArray[$key];
+                    if (!in_array($validPrice, $kindValue)) {
+                        $res->isSuccess = FALSE;
+                        $res->code = 400;
+                        $res->message = "Query Params를 확인하세요.(keyword 값은 ". $keywordArray. "입니다.)";
+                        echo json_encode($res, JSON_NUMERIC_CHECK);
+                        return;
+                    }
+
+                    $realKind = $realKind . '\'' . $kindArray[$key] . '\'';
+                    if ($value === end($kindArray)) {
+                        $realKind = $realKind . ')';
+                    } else {
+                        $realKind = $realKind . ',';
+                    }
+                }
+
+                $keyword =  $realKind;
+
+//                echo $realKind;
+
+            }
+
+
+            $real['videos'] = getPreference($userId, $keyword);
+
+
+            if ($real['videos'] == null) {
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "취향을 등록하면 영상을 추천해드려요!";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
+
+
+            $res->result = $real;
+            $res->isSuccess = TRUE;
+            $res->code = 200;
+            $res->message = "영상 리스트(내취향)";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+
 
         case "getVideo":
             http_response_code(200);

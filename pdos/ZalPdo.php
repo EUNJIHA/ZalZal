@@ -22,6 +22,7 @@ where id =?;";
 
     return $res[0];
 }
+
 function getSpecificPicks($categoryId)
 {
     $pdo = pdoSqlConnect();
@@ -56,7 +57,8 @@ function getUserId($userEmail)
     return $res[0]['id'];
 }
 
-function getSubImgUrl($pickId){
+function getSubImgUrl($pickId)
+{
     $pdo = pdoSqlConnect();
     $query = "select sub_image_url imgUrl from pick where id = ?;
 ";
@@ -73,10 +75,11 @@ function getSubImgUrl($pickId){
 
 }
 
-function getVideos($userId, $pickId){
+function getVideos($userId, $pickId)
+{
     $pdo = pdoSqlConnect();
     $query = "select id videoId,
-       url, title, publisher,
+       url, title, publisher, content,
        IF(h.status is null, 'N', status) heart
        from video
 LEFT JOIN heart h on video.id = h.video_id and user_id = ?
@@ -87,6 +90,15 @@ where pick_id=?;
     $st->execute([$userId, $pickId]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
+
+//    print_r($res);
+
+    foreach ($res as $key => $value) {
+
+        $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+
+    }
+    // $temp3['keywords'] = getVideoKeywords($temp2['videos']['videoId']);
 
     $st = null;
     $pdo = null;
@@ -112,7 +124,8 @@ function isExistPick($pickId)
     return intval($res[0]["exist"]);
 }
 
-function getLikes($userId, $category){
+function getLikes($userId, $category)
+{
 
     $pdo = pdoSqlConnect();
     $query = "select CATEGORY.name, id videoId,
@@ -158,7 +171,8 @@ function isExistVideo($videoId)
     return intval($res[0]["exist"]);
 }
 
-function getVideoKeywords($videoId){
+function getVideoKeywords($videoId)
+{
 
     $pdo = pdoSqlConnect();
     $query = "select concat('#', word) word  from keyword where video_id =?";
@@ -168,10 +182,10 @@ function getVideoKeywords($videoId){
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 //    print_r($res);
-    $keywords= '';
+    $keywords = '';
 
 
-    foreach ($res as $key => $value){
+    foreach ($res as $key => $value) {
 
         $keywords = $keywords . $res[$key]['word'] . ' ';
     }
@@ -187,7 +201,9 @@ function getVideoKeywords($videoId){
 
     return $keywords;
 }
-function getVideo($userId, $videoId){
+
+function getVideo($userId, $videoId)
+{
 
     $pdo = pdoSqlConnect();
     $query = "select
@@ -211,7 +227,8 @@ where id = ?;";
 }
 
 
-function isExistLike($userId, $videoId){
+function isExistLike($userId, $videoId)
+{
     $pdo = pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM heart h WHERE h.user_id=? and h.video_id=?) AS exist;";
 
@@ -222,22 +239,23 @@ function isExistLike($userId, $videoId){
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
-    $st=null;
+    $st = null;
     $pdo = null;
 
     return intval($res[0]["exist"]);
 }
 
-function postHeart($userId, $videoId, $status){
+function postHeart($userId, $videoId, $status)
+{
     $pdo = pdoSqlConnect();
     $insertQuery = "INSERT INTO heart (user_id, video_id, status) VALUES (?, ?, 'Y');";
     $updateQuery = "UPDATE heart SET status = IF(status = 'Y', 'N', 'Y')  WHERE user_id =? and video_id =?;";
 
     $query = "";
 
-    if($status == 'insert'){
+    if ($status == 'insert') {
         $query = $insertQuery;
-    }elseif($status == 'update'){
+    } elseif ($status == 'update') {
         $query = $updateQuery;
     }
 
@@ -252,7 +270,8 @@ function postHeart($userId, $videoId, $status){
 }
 
 
-function userHeartStatus($userId, $videoId){
+function userHeartStatus($userId, $videoId)
+{
 
     $pdo = pdoSqlConnect();
     $query = "select IF(status = 'N', 'N', 'Y') status
@@ -270,6 +289,67 @@ where user_id =? and video_id = ?";
     return $res[0];
 
 }
+
+
+// 4. 내취향
+function getSubCategory()
+{
+
+    $pdo = pdoSqlConnect();
+    $query = "select name from sub_category;";
+
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+//    print_r($res);
+
+    $real = Array();
+    foreach ($res as $key => $value) {
+        array_push($real, $res[$key]['name']);
+    }
+//    print_r($real);
+    $st = null;
+    $pdo = null;
+
+    return $real;
+
+}
+
+function getPreference($userId, $keyword)
+{
+
+    $pdo = pdoSqlConnect();
+    $query = "select id videoId,
+       url, title, publisher, content,
+       IF(h.status is null, 'N', status) heart
+       from video
+LEFT JOIN heart h on video.id = h.video_id and user_id = ?
+JOIN (select video_id videoId from keyword
+where word in ";
+
+    $query = $query . $keyword . ") WORD ON WORD.videoId = video.id";
+//    echo $query;
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+
+    foreach ($res as $key => $value) {
+
+        $res[$key]['keywords'] = getVideoKeywords($res[$key]['videoId']);
+
+    }
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
 ////READ
 //function testDetail($testNo)
 //{
@@ -303,7 +383,8 @@ where user_id =? and video_id = ?";
 //}
 
 
-function isValidUser($email, $pw){
+function isValidUser($email, $pw)
+{
     $pdo = pdoSqlConnect();
     $query = "SELECT EXISTS(SELECT * FROM user WHERE email= ? AND password = ?) AS exist;";
 
@@ -314,7 +395,8 @@ function isValidUser($email, $pw){
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
-    $st=null;$pdo = null;
+    $st = null;
+    $pdo = null;
 
     return intval($res[0]["exist"]);
 
