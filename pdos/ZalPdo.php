@@ -111,6 +111,35 @@ function isExistPick($pickId)
 
     return intval($res[0]["exist"]);
 }
+
+function getLikes($userId, $category){
+
+    $pdo = pdoSqlConnect();
+    $query = "select CATEGORY.name, id videoId,
+       url, title, publisher,
+       IF(h.status is null, 'N', status) heart
+       from video
+LEFT JOIN heart h on video.id = h.video_id and user_id = ?
+LEFT JOIN (select c.name, v.id videoId
+from video v
+         LEFT JOIN pick p on v.pick_id = p.id
+         JOIN category c on p.category_id = c.id) CATEGORY ON CATEGORY.videoId = video.id
+where status = 'Y'";
+
+    $query = $query . $category . ";";
+
+    echo $query;
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
 ////READ
 //function testDetail($testNo)
 //{

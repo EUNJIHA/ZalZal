@@ -82,7 +82,7 @@ function getJWToken($email, $pw, $secretKey)
         'pw' => (string)$pw
     );
 
-    echo json_encode($data);
+//    echo json_encode($data);
 
     return $jwt = JWT::encode($data, $secretKey);
 
