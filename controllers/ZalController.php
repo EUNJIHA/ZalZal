@@ -274,7 +274,7 @@ try {
                 // $kindValue = array('쿠키', '빵', '커피');
                 $kindValue = getSubCategory();
 
-                $keywordArray = implode( ', ', $kindValue );
+                $keywordArray = implode(', ', $kindValue);
 
                 foreach ($kindArray as $key => $value) {
 
@@ -282,7 +282,7 @@ try {
                     if (!in_array($validPrice, $kindValue)) {
                         $res->isSuccess = FALSE;
                         $res->code = 400;
-                        $res->message = "Query Params를 확인하세요.(keyword 값은 ". $keywordArray. "입니다.)";
+                        $res->message = "Query Params를 확인하세요.(keyword 값은 " . $keywordArray . "입니다.)";
                         echo json_encode($res, JSON_NUMERIC_CHECK);
                         return;
                     }
@@ -295,7 +295,7 @@ try {
                     }
                 }
 
-                $keyword =  $realKind;
+                $keyword = $realKind;
 
 //                echo $realKind;
 
@@ -321,7 +321,6 @@ try {
 
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
-
 
 
         case "getVideo":
@@ -424,6 +423,73 @@ try {
             }
 
         case "getCategories":
+
+        case "getKeywords":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "로그인을 해야 이용 가능한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $userEmail = $data->email;
+            $userId = getUserId($userEmail);
+
+
+        if (!hasKeywords($userId)) {
+            $res->isSuccess = FALSE;
+            $res->code = 400;
+            $res->message = "취향을 등록해주세요.";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            return;
+        }
+
+
+            $categoryArr = [1, 2, 3];
+            $real = Array();
+            foreach ($categoryArr as $key => $value) {
+                $temp = Array();
+                $temp2 = Array();
+
+                $temp = getCategoryName($value);
+                $temp2['sub'] = getSub($value, $userId);
+
+                $real[$key] = array_merge($temp, $temp2);
+            }
+
+
+            $res->result = $real;
+            $res->isSuccess = TRUE;
+            $res->code = 200;
+            $res->message = "추천 리스트";
+
+
+//            $real['videos'] = getPreference($userId, $keyword, $kindArray);
+//
+//
+//            if ($real['videos'] == null) {
+//                $res->isSuccess = FALSE;
+//                $res->code = 400;
+//                $res->message = "취향을 등록하면 영상을 추천해드려요!";
+//                echo json_encode($res, JSON_NUMERIC_CHECK);
+//                return;
+//            }
+//
+//
+//            $res->result = $real;
+//            $res->isSuccess = TRUE;
+//            $res->code = 200;
+//            $res->message = "영상 리스트(내취향)";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
 
     }
 } catch (\Exception $e) {
