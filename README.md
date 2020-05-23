@@ -33,3 +33,6 @@ Password: h087px
 ![image](https://user-images.githubusercontent.com/43839938/82728850-0c619680-9d2e-11ea-8d22-cd7c60cfecf9.png)
 
 [API Documentation 상세 보기](https://documenter.getpostman.com/view/5699730/Szt8dUtf)
+
+## 5. Technologies
+AWS EC2, Nginx, PHP, MySQL
