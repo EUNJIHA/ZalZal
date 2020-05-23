@@ -99,6 +99,7 @@ try {
 
             $pickId = $vars['pick-id'];
 
+
             if (isset($jwt)) {
                 if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
                     $res->isSuccess = FALSE;
@@ -117,6 +118,14 @@ try {
 
             }else {
                 $userId = 0;
+            }
+
+            if(!isExistPick($pickId)){
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "해당 Pick 식별자가 없습니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
             }
 
 

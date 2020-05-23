@@ -94,6 +94,23 @@ where pick_id=?;
     return $res;
 
 }
+
+function isExistPick($pickId)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM pick p WHERE p.id= ?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    $st->execute([$pickId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
 ////READ
 //function testDetail($testNo)
 //{
