@@ -128,7 +128,7 @@ where status = 'Y'";
 
     $query = $query . $category . ";";
 
-    echo $query;
+//    echo $query;
 
     $st = $pdo->prepare($query);
     $st->execute([$userId]);
@@ -140,6 +140,76 @@ where status = 'Y'";
 
     return $res;
 }
+
+function isExistVideo($videoId)
+{
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM video v WHERE v.id= ?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    $st->execute([$videoId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]["exist"]);
+}
+
+function getVideoKeywords($videoId){
+
+    $pdo = pdoSqlConnect();
+    $query = "select concat('#', word) word  from keyword where video_id =?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$videoId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+//    print_r($res);
+    $keywords= '';
+
+
+    foreach ($res as $key => $value){
+
+        $keywords = $keywords . $res[$key]['word'] . ' ';
+    }
+//    foreach ($res as $key => $value){
+//
+//
+//    }
+//    $keywords = implode(" ", $res);
+//    echo $keywords;
+
+    $st = null;
+    $pdo = null;
+
+    return $keywords;
+}
+function getVideo($userId, $videoId){
+
+    $pdo = pdoSqlConnect();
+    $query = "select
+       url, title, publisher,
+       IF(h.status is null, 'N', status) heart,
+       content
+       from video
+LEFT JOIN heart h on video.id = h.video_id and user_id = ?
+where id = ?;";
+
+
+    $st = $pdo->prepare($query);
+    $st->execute([$userId, $videoId]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
+}
+
 ////READ
 //function testDetail($testNo)
 //{

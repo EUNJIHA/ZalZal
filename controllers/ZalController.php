@@ -86,8 +86,8 @@ try {
 
             $res->result = $real;
             $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "테스트 성공";
+            $res->code = 200;
+            $res->message = "추천 리스트";
 
 
             echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -226,6 +226,60 @@ try {
             $res->isSuccess = TRUE;
             $res->code = 200;
             $res->message = "영상 리스트(좋아요)";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+
+        case "getPreference":
+
+        case "getVideo":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            $videoId = $vars['video-id'];
+
+            if (isset($jwt)) {
+                if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                    $res->isSuccess = FALSE;
+                    $res->code = 201;
+                    $res->message = "유효하지 않은 토큰입니다";
+                    echo json_encode($res, JSON_NUMERIC_CHECK);
+                    addErrorLogs($errorLogs, $res, $req);
+                    return;
+                }
+                $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+
+                $userEmail = $data->email;
+
+                $userId = getUserId($userEmail);
+
+
+            } else {
+                $userId = 0;
+            }
+
+            if (!isExistVideo($videoId)) {
+                $res->isSuccess = FALSE;
+                $res->code = 400;
+                $res->message = "해당 Video 식별자가 없습니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                return;
+            }
+
+            $temp = Array();
+            $temp2 = Array();
+
+            $temp = getVideo($userId, $videoId);
+            $temp2['keywords'] = getVideoKeywords($videoId);
+
+            $real = array_merge($temp, $temp2);
+
+            $res->result = $real;
+            $res->isSuccess = TRUE;
+            $res->code = 200;
+            $res->message = "video 상세 조회";
+
 
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
